@@ -1,7 +1,7 @@
 {
-  "name": "dotcms-upload",
-  "displayName": "DotCMS Upload",
-  "description": "Synchronizes local files with dotCMS using WebDAV",
+  "name": "webdav",
+  "displayName": "WebDAV Upload",
+  "description": "Uploads local to a remote host using WebDAV",
   "version": "0.0.1",
   "publisher": "Jorith van den Heuvel",
   "engines": {
@@ -17,8 +17,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.dotcmsUpload",
-        "title": "Upload to dotCMS"
+        "command": "extension.webdavUpload",
+        "title": "Upload to WebDAV"
       }
     ]
   },
@@ -30,7 +30,9 @@
     "@types/mocha": "^2.2.42",
     "@types/node": "^7.0.0",
     "eslint": "^4.6.1",
+    "find-config": "^1.0.0",
     "mocha": "^3.5.0",
+    "path": "^0.12.7",
     "typescript": "^2.5.2",
     "vscode": "^1.1.5",
     "webdav-fs": "^1.5.0"

@@ -1,74 +1,67 @@
-var vscode = require('vscode');
-var fs = require("fs");
-
-var configFile = vscode.workspace.rootPath + "/.vscode/dotcms-webdav.json";
+const vscode = require('vscode');
+const fs = require("fs");
+const findConfig = require('find-config');
+const path = require('path');
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 
-if (fs.existsSync(configFile)) {
-    var config = JSON.parse(fs.readFileSync(configFile));
+    function activate(context) {
+        var uploadCommand = vscode.commands.registerCommand('extension.webdavUpload', function(){
+            const editor = vscode.window.activeTextEditor;
 
-    if (config != null) {
+            const workingFile = editor.document.uri.fsPath;
+            const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
+            const configFile = findConfig('webdav.json', {cwd: workingDir});
 
-        var wfs = require("webdav-fs")(
-            config.url,
-            config.user,
-            config.password
-        );
+            if (configFile != null) {
+                // The location of the config file is the directory we use as webdav root
+                const baseDir = configFile.slice(0, configFile.lastIndexOf(path.sep));
 
-        if (config.ignoreSSLErrors) {
-            process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-        }
+                // Read configuration
+                var config = JSON.parse(fs.readFileSync(configFile));
 
-        // this method is called when your extension is activated
-        // your extension is activated the very first time the command is executed
-        function activate(context) {
+                // Ignore SSL errors, needed for self signed certificates
+                if (config.ignoreSSLErrors) {
+                    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+                }
 
-            var uploadCommand = vscode.commands.registerCommand('extension.dotcmsUpload', dotcmsUpload);
+                // Initialize WebDAV
+                const webdav =   require("webdav-fs")(config.url, config.user, config.password);
+                const remoteFile = workingFile.replace(baseDir, '').replace(/\\/g, '/'); // On Windows replace \ with /
 
+                // Upload
+                webdav.writeFile(remoteFile, editor.document.getText(), function(err) {
+                    if (err != null) {
+                        console.error(err);
+                        vscode.window.showInformationMessage('Failed to upload file to remote host: ' + err.message);
+                    } else {
+                        var fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
 
-            statusBar.command = 'extension.dotcmsUpload';
-            statusBar.text = '$(cloud-upload) Upload to dotCMS';
+                        statusBar.text = "$(cloud-upload) Uploaded " + fileName + "...";
+                        statusBar.command = null;
 
-            context.subscriptions.push(statusBar);
-            context.subscriptions.push(uploadCommand);
+                        setTimeout(function() {
+                            statusBar.text = '$(cloud-upload) Upload to WebDAV';
+                            statusBar.command = 'extension.webdavUpload';
+                        }, 2000)
+                    }
+                });
+            }
+        });
 
-            statusBar.show();
-        }
+        statusBar.command = 'extension.webdavUpload';
+        statusBar.text = '$(cloud-upload) Upload to WebDAV';
 
-        exports.activate = activate;
+        context.subscriptions.push(statusBar);
+        context.subscriptions.push(uploadCommand);
 
-        // this method is called when your extension is deactivated
-        function deactivate() {
-        }
-
-        exports.deactivate = deactivate;
+        statusBar.show();
     }
-}
 
-function dotcmsUpload() {
-    var editor = vscode.window.activeTextEditor;
+    exports.activate = activate;
 
-    var workspaceRoot = vscode.workspace.rootPath;
-    var webdavRoot = workspaceRoot + config.webroot.replace(/\//g,'\\');
+    // this method is called when your extension is deactivated
+    function deactivate() {
+    }
 
-    var webdavPath = editor.document.uri.fsPath.replace(webdavRoot, '').replace(/\\/g, '/');
-    var fileText = editor.document.getText();
-
-    wfs.writeFile(webdavPath, fileText, function(err) {
-        if (err != null) {
-            console.error(err.message);
-            vscode.window.showInformationMessage('Failed to upload file to dotCMS: ' + err.message);
-        } else {
-            var fileName = webdavPath.slice(webdavPath.lastIndexOf('/')+1);
-
-            statusBar.text = "$(cloud-upload) Uploaded " + fileName + "...";
-            statusBar.command = null;
-
-            setTimeout(function() {
-                statusBar.text = '$(cloud-upload) Upload to dotCMS';
-                statusBar.command = 'extension.dotcmsUpload';
-            }, 2000)
-        }
-    });
-}
+    exports.deactivate = deactivate;

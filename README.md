@@ -1,6 +1,6 @@
-# dotcms-upload README
+# webdav README
 
-This is the README for your extension "dotcms-upload". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "webdav". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
