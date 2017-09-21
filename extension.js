@@ -48,7 +48,10 @@ if (fs.existsSync(configFile)) {
 
 function dotcmsUpload() {
     var editor = vscode.window.activeTextEditor;
-    var webdavRoot = "d:\\workspaces\\eclipse-neon\\badinbeeld\\frontend\\badinbeeld\\www";
+
+    var workspaceRoot = vscode.workspace.rootPath;
+    var webdavRoot = workspaceRoot + config.webroot.replace(/\//g,'\\');
+
     var webdavPath = editor.document.uri.fsPath.replace(webdavRoot, '').replace(/\\/g, '/');
     var fileText = editor.document.getText();
 
