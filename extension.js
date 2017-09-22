@@ -109,22 +109,25 @@ function webdavCompare() {
                         return console.log(err);
                     }
                 });
+
+                // Compare!
+                try {
+                    const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
+
+                    vscode.commands.executeCommand('vscode.diff',
+                        vscode.Uri.file(tmpFile.name),
+                        vscode.Uri.file(workingFile),
+                        fileName + ' (WebDAV Compare)',
+                        {
+                            preview: false, // Open the diff in an additional tab instead of replacing the current one
+                            selection: null // Don't select any text in the compare
+                        });
+
+                } catch (error) {
+                    console.log(error);
+                }
             });
 
-            // Compare!
-            try {
-                vscode.commands.executeCommand('vscode.diff',
-                    vscode.Uri.file(workingFile),
-                    vscode.Uri.file(tmpFile.name),
-                    'Local ↔ Remote (WebDAV)',
-                    {
-                        preview: false, // Open the diff in an additional tab instead of replacing the current one
-                        selection: null // Don't select any text in the compare
-                    });
-
-            } catch (error) {
-                console.log(error);
-            }
         } else {
             vscode.window.showErrorMessage('Configuration files for WebDAV (webdav.json/webdav-credentials.json) not found...');
         }
