@@ -113,7 +113,15 @@ function webdavCompare() {
 
             // Compare!
             try {
-                vscode.commands.executeCommand('vscode.diff', vscode.Uri.file(workingFile), vscode.Uri.file(tmpFile.name), 'Local ↔ Remote (WebDAV)');
+                vscode.commands.executeCommand('vscode.diff',
+                    vscode.Uri.file(workingFile),
+                    vscode.Uri.file(tmpFile.name),
+                    'Local ↔ Remote (WebDAV)',
+                    {
+                        preview: false, // Open the diff in an additional tab instead of replacing the current one
+                        selection: null // Don't select any text in the compare
+                    });
+
             } catch (error) {
                 console.log(error);
             }
