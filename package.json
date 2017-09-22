@@ -18,7 +18,11 @@
     "commands": [
       {
         "command": "extension.webdavUpload",
-        "title": "Upload to WebDAV"
+        "title": "WebDAV: Upload"
+      },
+      {
+        "command": "extension.webdavCompare",
+        "title": "WebDAV: Compare"
       }
     ]
   },
@@ -33,6 +37,7 @@
     "find-config": "^1.0.0",
     "mocha": "^3.5.0",
     "path": "^0.12.7",
+    "tmp": "0.0.33",
     "typescript": "^2.5.2",
     "vscode": "^1.1.5",
     "webdav-fs": "^1.5.0"
