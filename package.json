@@ -3,7 +3,7 @@
   "displayName": "WebDAV Upload",
   "description": "Uploads local to a remote host using WebDAV",
   "version": "0.0.1",
-  "publisher": "Jorith van den Heuvel",
+  "publisher": "jorithvdheuvel",
   "engines": {
     "vscode": "^1.16.0"
   },
@@ -34,12 +34,15 @@
     "@types/mocha": "^2.2.42",
     "@types/node": "^7.0.0",
     "eslint": "^4.6.1",
-    "find-config": "^1.0.0",
-    "mocha": "^3.5.0",
+    "mocha": "^3.5.0"
+  },
+  "dependencies": {
     "path": "^0.12.7",
+    "find-config": "^1.0.0",
     "tmp": "0.0.33",
     "typescript": "^2.5.2",
     "vscode": "^1.1.5",
     "webdav-fs": "^1.5.0"
   }
+
 }
