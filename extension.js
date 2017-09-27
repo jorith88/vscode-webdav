@@ -3,8 +3,10 @@ const fs = require("fs");
 const findConfig = require('find-config');
 const path = require('path');
 const tmp = require('tmp');
+const CredentialStore = require('./credentialstore/credentialstore.js');
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
+const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
 
 function activate(context) {
     const uploadCommand = vscode.commands.registerCommand('extension.webdavUpload', upload);
@@ -18,6 +20,25 @@ function activate(context) {
     context.subscriptions.push(compareCommand);
 
     statusBar.show();
+
+
+
+    // credStore.SetCredential('test123', 'username', 'password').then(function(result) {
+    //     console.log('1', result); // "Stuff worked!"
+
+    //     const credential = credStore.GetCredential('test123').then(function(result) {
+    //         console.log('3', result._password); // "Stuff worked!"
+    //     }, function(err) {
+    //         console.log('5', err); // Error: "It broke"
+    //     });
+
+
+
+
+
+    // }, function(err) {
+    //     console.log('2', err); // Error: "It broke"
+    // });
 }
 
 exports.activate = activate;
@@ -89,31 +110,36 @@ function compare() {
 function doWebdavAction(webdavAction) {
     const workingFile = vscode.window.activeTextEditor.document.uri.fsPath;
     const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
-    const credConfigFile = findConfig('webdav-credentials.json', {cwd: workingDir});
 
-    if (credConfigFile != null) {
+    // Read configuration
+    const config = getEndpointConfigForCurrentPath(workingDir);
 
-        // Read configuration
-        const config = getEndpointConfigForCurrentPath(workingDir);
-        const credentials = JSON.parse(fs.readFileSync(credConfigFile));
+    // Ignore SSL errors, needed for self signed certificates
+    if (config.remoteEndpoint.ignoreSSLErrors) {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    }
 
-        if (config != null) {
+    // Initialize WebDAV
+    const remoteFile = workingFile.replace(/\\/g, '/').replace(vscode.workspace.rootPath.replace(/\\/g, '/') + config.localRootPath, ''); // On Windows replace \ with /
 
-            // Ignore SSL errors, needed for self signed certificates
-            if (config.remoteEndpoint.ignoreSSLErrors) {
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-            }
+    getWebdavCredentials(config.remoteEndpoint.url).then(function(credentials) {
 
-            // Initialize WebDAV
-            const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials.user, credentials.password);
-            const remoteFile = workingFile.replace(/\\/g, '/').replace(vscode.workspace.rootPath.replace(/\\/g, '/') + config.localRootPath, ''); // On Windows replace \ with /
-
+        if (credentials !== undefined) {
+            const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
             webdavAction(webdav, workingFile, remoteFile);
+            return;
         }
 
-    } else {
-        vscode.window.showErrorMessage('Credentials config file for WebDAV (webdav-credentials.json) not found...');
-    }
+        // Credentials have not yet been stored, store them and try to retrieve them again...
+        askAndStoreCredentials(config.remoteEndpoint.url).then(function() {
+            getWebdavCredentials(config.remoteEndpoint.url).then(function(credentials) {
+                const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
+                webdavAction(webdav, workingFile, remoteFile);
+            });
+        });
+    }, function(err) {
+        console.log(err);
+    });
 }
 
 function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
@@ -153,4 +179,20 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
     } else {
         vscode.window.showErrorMessage('Endpoint config file for WebDAV (webdav.json) not found...');
     }
+}
+
+function getWebdavCredentials(url) {
+    return credStore.GetCredential(url);
+}
+
+function askAndStoreCredentials(url) {
+    return new Promise(function(resolve, reject) {
+        vscode.window.showInputBox({prompt: 'Username?'}).then(function(username) {
+            vscode.window.showInputBox({prompt: 'Password?', password: true}).then(function(password) {
+                credStore.SetCredential(url, username, password).then(function() {
+                    resolve();
+                });
+            });
+        });
+    });
 }
