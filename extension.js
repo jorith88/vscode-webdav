@@ -20,25 +20,6 @@ function activate(context) {
     context.subscriptions.push(compareCommand);
 
     statusBar.show();
-
-
-
-    // credStore.SetCredential('test123', 'username', 'password').then(function(result) {
-    //     console.log('1', result); // "Stuff worked!"
-
-    //     const credential = credStore.GetCredential('test123').then(function(result) {
-    //         console.log('3', result._password); // "Stuff worked!"
-    //     }, function(err) {
-    //         console.log('5', err); // Error: "It broke"
-    //     });
-
-
-
-
-
-    // }, function(err) {
-    //     console.log('2', err); // Error: "It broke"
-    // });
 }
 
 exports.activate = activate;
@@ -51,58 +32,73 @@ exports.deactivate = deactivate;
 
 function upload() {
     doWebdavAction(function(webdav, workingFile, remoteFile) {
-        const editor = vscode.window.activeTextEditor;
+        return new Promise(function(resolve, reject) {
+            const editor = vscode.window.activeTextEditor;
 
-        webdav.writeFile(remoteFile, editor.document.getText() , function(err) {
-            if (err != null) {
-                console.error(err);
-                vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
-            } else {
-                const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
+            webdav.writeFile(remoteFile, editor.document.getText() , function(err) {
+                if (err != null) {
+                    console.error(err);
+                    vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
+                    reject(err);
+                } else {
+                    const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
 
-                statusBar.text    = "$(cloud-upload) Uploaded " + fileName + "...";
-                statusBar.command = null;
-                statusBar.color   = '#4cff4c';
+                    statusBar.text    = "$(cloud-upload) Uploaded " + fileName + "...";
+                    statusBar.command = null;
+                    statusBar.color   = '#4cff4c';
 
-                setTimeout(function() {
-                    statusBar.text    = '$(cloud-upload) Upload to WebDAV';
-                    statusBar.command = 'extension.webdavUpload';
-                    statusBar.color   = '#fff';
-                }, 2000)
-            }
+                    setTimeout(function() {
+                        statusBar.text    = '$(cloud-upload) Upload to WebDAV';
+                        statusBar.command = 'extension.webdavUpload';
+                        statusBar.color   = '#fff';
+                    }, 2000)
+
+                    resolve(undefined);
+                }
+            });
         });
     });
 }
 
 function compare() {
     doWebdavAction(function(webdav, workingFile, remoteFile) {
+        return new Promise(function(resolve, reject) {
+            // Write the remote file to a local temporary file
+            const extension = workingFile.slice(workingFile.lastIndexOf('.'));
+            var tmpFile = tmp.fileSync({ postfix: extension });
+            webdav.readFile(remoteFile, "utf8", function(error, data) {
 
-        // Write the remote file to a local temporary file
-        const extension = workingFile.slice(workingFile.lastIndexOf('.'));
-        var tmpFile = tmp.fileSync({ postfix: extension });
-        webdav.readFile(remoteFile, "utf8", function(error, data) {
-            fs.writeFileSync(tmpFile.name, data, function(err) {
-                if(err) {
-                    return console.log(err);
+                if (error != null) {
+                    console.log(error);
+                    reject(error);
+                }
+
+                fs.writeFileSync(tmpFile.name, data, function(err) {
+                    if(err) {
+                        console.log(err);
+                        reject(error);
+                    }
+                });
+
+                // Compare!
+                try {
+                    const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
+
+                    vscode.commands.executeCommand('vscode.diff',
+                        vscode.Uri.file(tmpFile.name),
+                        vscode.Uri.file(workingFile),
+                        fileName + ' (WebDAV Compare)',
+                        {
+                            preview: false, // Open the diff in an additional tab instead of replacing the current one
+                            selection: null // Don't select any text in the compare
+                        }
+                    );
+                    resolve(undefined);
+                } catch (error) {
+                    console.log(error);
+                    reject(error);
                 }
             });
-
-            // Compare!
-            try {
-                const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
-
-                vscode.commands.executeCommand('vscode.diff',
-                    vscode.Uri.file(tmpFile.name),
-                    vscode.Uri.file(workingFile),
-                    fileName + ' (WebDAV Compare)',
-                    {
-                        preview: false, // Open the diff in an additional tab instead of replacing the current one
-                        selection: null // Don't select any text in the compare
-                    });
-
-            } catch (error) {
-                console.log(error);
-            }
         });
     });
 }
@@ -122,23 +118,19 @@ function doWebdavAction(webdavAction) {
     // Initialize WebDAV
     const remoteFile = workingFile.replace(/\\/g, '/').replace(vscode.workspace.rootPath.replace(/\\/g, '/') + config.localRootPath, ''); // On Windows replace \ with /
 
-    getWebdavCredentials(config.remoteEndpoint.url).then(function(credentials) {
+    getWebdavCredentials(config.remoteEndpoint.url).then(credentials => {
+        const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
+        webdavAction(webdav, workingFile, remoteFile).then(() => {
+            // store the password only if there is no WebDAV error
+            if (credentials.newCredentials) {
+                storeCredentials(config.remoteEndpoint.url, credentials._username, credentials._password);
+            }
+        }, error => vscode.window.showErrorMessage('Error in WebDAV communication: ' + error));
 
-        if (credentials !== undefined) {
-            const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
-            webdavAction(webdav, workingFile, remoteFile);
-            return;
-        }
 
-        // Credentials have not yet been stored, store them and try to retrieve them again...
-        askAndStoreCredentials(config.remoteEndpoint.url).then(function() {
-            getWebdavCredentials(config.remoteEndpoint.url).then(function(credentials) {
-                const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
-                webdavAction(webdav, workingFile, remoteFile);
-            });
-        });
-    }, function(err) {
-        console.log(err);
+    }, error => {
+        console.error('Error while retrieving credentials', error);
+        vscode.window.showErrorMessage('Error while retrieving credentials ');
     });
 }
 
@@ -182,17 +174,33 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
 }
 
 function getWebdavCredentials(url) {
-    return credStore.GetCredential(url);
+    return new Promise(function(resolve, reject) {
+        credStore.GetCredential(url).then(credentials => {
+            if (credentials !== undefined) {
+                resolve(credentials);
+            } else {
+                askForCredentials(url).then(credentials =>{
+                    resolve(credentials);
+                }, error => reject(error));
+            }
+        }, error => reject(error))
+    });
 }
 
-function askAndStoreCredentials(url) {
+function askForCredentials(url) {
     return new Promise(function(resolve, reject) {
-        vscode.window.showInputBox({prompt: 'Username?'}).then(function(username) {
-            vscode.window.showInputBox({prompt: 'Password?', password: true}).then(function(password) {
-                credStore.SetCredential(url, username, password).then(function() {
-                    resolve();
+        vscode.window.showInputBox({prompt: 'Username for ' + url + ' ?'}).then(username => {
+            vscode.window.showInputBox({prompt: 'Password ?', password: true}).then(password => {
+                resolve({
+                    newCredentials: true,
+                    _username: username,
+                    _password: password
                 });
-            });
-        });
+            }, error => reject(error));
+        }, error => reject(error));
     });
+}
+
+function storeCredentials(url, username, password) {
+    credStore.SetCredential(url, username, password)
 }
