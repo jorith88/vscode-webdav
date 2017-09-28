@@ -119,6 +119,12 @@ function doWebdavAction(webdavAction) {
     const remoteFile = workingFile.replace(/\\/g, '/').replace(vscode.workspace.rootPath.replace(/\\/g, '/') + config.localRootPath, ''); // On Windows replace \ with /
 
     getWebdavCredentials(config.remoteEndpoint.url).then(credentials => {
+
+        if (!credentials) {
+            vscode.window.showWarningMessage('WebDAV login cancelled...');
+            return;
+        }
+
         const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
         webdavAction(webdav, workingFile, remoteFile).then(() => {
             // store the password only if there is no WebDAV error
@@ -190,7 +196,17 @@ function getWebdavCredentials(url) {
 function askForCredentials(url) {
     return new Promise(function(resolve, reject) {
         vscode.window.showInputBox({prompt: 'Username for ' + url + ' ?'}).then(username => {
+            if (!username) {
+                resolve(undefined);
+                return;
+            }
+
             vscode.window.showInputBox({prompt: 'Password ?', password: true}).then(password => {
+                if (!password) {
+                    resolve(undefined);
+                    return;
+                }
+
                 resolve({
                     newCredentials: true,
                     _username: username,
