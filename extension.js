@@ -8,6 +8,12 @@ const CredentialStore = require('./credentialstore/credentialstore.js');
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
 
+const EMPTY_CREDENTIALS = {
+    newCredentials: true,
+    _username: '',
+    _password: ''
+}
+
 function activate(context) {
     const uploadCommand = vscode.commands.registerCommand('extension.webdavUpload', upload);
     const compareCommand = vscode.commands.registerCommand('extension.webdavCompare', compare);
@@ -80,6 +86,11 @@ function compare() {
                     }
                 });
 
+                if (!data) {
+                    reject("Cannot download remote file " + remoteFile);
+                    return;
+                }
+
                 // Compare!
                 try {
                     const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
@@ -127,8 +138,9 @@ function doWebdavAction(webdavAction) {
 
         const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
         webdavAction(webdav, workingFile, remoteFile).then(() => {
-            // store the password only if there is no WebDAV error
-            if (credentials.newCredentials) {
+            // store the password only if there is no WebDAV error and
+            // the credentials contains at least a user name
+            if (credentials.newCredentials && credentials._username) {
                 storeCredentials(config.remoteEndpoint.url, credentials._username, credentials._password);
             }
         }, error => vscode.window.showErrorMessage('Error in WebDAV communication: ' + error));
@@ -155,13 +167,17 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
         let configOnCurrentSearchPath = null;
 
         while (!endpointConfig) {
-
             if (currentSearchPath === "") {
                 vscode.window.showErrorMessage('Cannot find a remote endpoint configuration for the current working directory ' + relativeWorkingDir + ' in webdav.json...');
                 return null;
             }
 
             configOnCurrentSearchPath = allEndpointsConfig[currentSearchPath];
+
+            if (!configOnCurrentSearchPath) {
+                // Maybe the path in the configuration has a trailing '/'
+                configOnCurrentSearchPath = allEndpointsConfig[currentSearchPath + '/'];
+            }
 
             if (configOnCurrentSearchPath) {
                 endpointConfig = configOnCurrentSearchPath;
@@ -185,7 +201,8 @@ function getWebdavCredentials(url) {
             if (credentials !== undefined) {
                 resolve(credentials);
             } else {
-                askForCredentials(url).then(credentials =>{
+                askForCredentials(url).then(credentials => {
+                    console.log('d', credentials);
                     resolve(credentials);
                 }, error => reject(error));
             }
@@ -197,13 +214,13 @@ function askForCredentials(url) {
     return new Promise(function(resolve, reject) {
         vscode.window.showInputBox({prompt: 'Username for ' + url + ' ?'}).then(username => {
             if (!username) {
-                resolve(undefined);
+                resolve(EMPTY_CREDENTIALS);
                 return;
             }
 
             vscode.window.showInputBox({prompt: 'Password ?', password: true}).then(password => {
                 if (!password) {
-                    resolve(undefined);
+                    resolve(EMPTY_CREDENTIALS);
                     return;
                 }
 
