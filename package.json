@@ -1,7 +1,7 @@
 {
   "name": "webdav",
   "displayName": "WebDAV Upload",
-  "description": "Uploads local to a remote host using WebDAV",
+  "description": "Uploads local files to a remote host using WebDAV",
   "version": "0.0.1",
   "publisher": "jorithvdheuvel",
   "engines": {
