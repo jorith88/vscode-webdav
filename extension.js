@@ -121,6 +121,10 @@ function doWebdavAction(webdavAction) {
     // Read configuration
     const config = getEndpointConfigForCurrentPath(workingDir);
 
+    if (!config) {
+        return;
+    }
+
     // Ignore SSL errors, needed for self signed certificates
     if (config.remoteEndpoint.ignoreSSLErrors) {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
