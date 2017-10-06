@@ -12,7 +12,7 @@ To configure one or more remote endpoints, add a `webdav.json` to your project r
 ### webdav.json Structure
 | Key  | Value |
 | ------------- | ------------- |
-| The path, relative to webdav.json, that corresponds to the root of the WebDAV endpoint | <ul><li>`url` (String): The URL of the WebDAV endpoint</li><li>`ignoreSSLErrors` (Boolean, optional): Ignore SSL verification errors. This option is mainly intended for DEV endpoints that have a self-signed certificate.</li></ul>   |
+| The path, relative to webdav.json, that corresponds to the root of the WebDAV endpoint | <ul><li>`url` (String): The URL of the WebDAV endpoint</li><li>`ignoreSSLErrors` (Boolean, optional): Ignore SSL verification errors. This option is mainly intended for DEV endpoints that have a self-signed SSL certificate.</li></ul>   |
 
 ### webdav.json Example
 ```json
@@ -28,5 +28,5 @@ To configure one or more remote endpoints, add a `webdav.json` to your project r
 ```
 
 ## Password storage
-The first time you connect to a new remote endpoint this extension will ask for a username and password. This password will be stored (using the `keytar` library) in the system's keychain. On macOS the passwords are managed by the Keychain, on Linux they are managed by the Secret Service API/libsecret, and on Windows they are managed by Credential Vault.
+The first time you connect to a new remote endpoint this extension will ask for a username and password. These credentials will be stored in the system's keychain (using the `keytar` library). On macOS the passwords are managed by the Keychain, on Linux they are managed by the Secret Service API/libsecret, and on Windows they are managed by Credential Vault.
 
