@@ -4,6 +4,7 @@ const findConfig = require('find-config');
 const path = require('path');
 const tmp = require('tmp');
 const CredentialStore = require('./credentialstore/credentialstore.js');
+var nodeUrl = require('url');
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
@@ -133,7 +134,10 @@ function doWebdavAction(webdavAction) {
     // Initialize WebDAV
     const remoteFile = workingFile.replace(/\\/g, '/').replace(vscode.workspace.rootPath.replace(/\\/g, '/') + config.localRootPath, ''); // On Windows replace \ with /
 
-    getWebdavCredentials(config.remoteEndpoint.url).then(credentials => {
+    const url = nodeUrl.parse(config.remoteEndpoint.url);
+    const credentialsKey = url.port ? url.hostname + ":" + url.port : url.hostname;
+
+    getWebdavCredentials(credentialsKey).then(credentials => {
 
         if (!credentials) {
             vscode.window.showWarningMessage('WebDAV login cancelled...');
@@ -145,7 +149,7 @@ function doWebdavAction(webdavAction) {
             // store the password only if there is no WebDAV error and
             // the credentials contains at least a user name
             if (credentials.newCredentials && credentials._username) {
-                storeCredentials(config.remoteEndpoint.url, credentials._username, credentials._password);
+                storeCredentials(credentialsKey, credentials._username, credentials._password);
             }
         }, error => vscode.window.showErrorMessage('Error in WebDAV communication: ' + error));
 
@@ -199,14 +203,13 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
     }
 }
 
-function getWebdavCredentials(url) {
+function getWebdavCredentials(key) {
     return new Promise(function(resolve, reject) {
-        credStore.GetCredential(url).then(credentials => {
+        credStore.GetCredential(key).then(credentials => {
             if (credentials !== undefined) {
                 resolve(credentials);
             } else {
-                askForCredentials(url).then(credentials => {
-                    console.log('d', credentials);
+                askForCredentials(key).then(credentials => {
                     resolve(credentials);
                 }, error => reject(error));
             }
@@ -214,9 +217,9 @@ function getWebdavCredentials(url) {
     });
 }
 
-function askForCredentials(url) {
+function askForCredentials(key) {
     return new Promise(function(resolve, reject) {
-        vscode.window.showInputBox({prompt: 'Username for ' + url + ' ?'}).then(username => {
+        vscode.window.showInputBox({prompt: 'Username for ' + key + ' ?'}).then(username => {
             if (!username) {
                 resolve(EMPTY_CREDENTIALS);
                 return;
@@ -238,6 +241,6 @@ function askForCredentials(url) {
     });
 }
 
-function storeCredentials(url, username, password) {
-    credStore.SetCredential(url, username, password)
+function storeCredentials(key, username, password) {
+    credStore.SetCredential(key, username, password)
 }
