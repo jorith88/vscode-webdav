@@ -116,6 +116,12 @@ function compare() {
 }
 
 function doWebdavAction(webdavAction) {
+
+    if (!vscode.window.activeTextEditor) {
+        vscode.window.showErrorMessage('Cannot find an active text editor...');
+        return;
+    }
+
     const workingFile = vscode.window.activeTextEditor.document.uri.fsPath;
     const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
 
