@@ -2,7 +2,7 @@
     "name": "webdav",
     "displayName": "WebDAV Upload",
     "description": "Uploads local files to a remote host using WebDAV",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "publisher": "jorithvdheuvel",
     "engines": {
         "vscode": "^1.16.0"

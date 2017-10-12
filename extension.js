@@ -1,10 +1,11 @@
-const vscode = require('vscode');
-const fs = require("fs");
-const findConfig = require('find-config');
-const path = require('path');
-const tmp = require('tmp');
-const CredentialStore = require('./credentialstore/credentialstore.js');
-var nodeUrl = require('url');
+const vscode            = require('vscode');
+const fs                = require("fs");
+const findConfig        = require('find-config');
+const path              = require('path');
+const tmp               = require('tmp');
+const CredentialStore   = require('./credentialstore/credentialstore.js');
+const nodeUrl           = require('url');
+const WebdavFs          = require("webdav-fs")
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
@@ -32,8 +33,7 @@ function activate(context) {
 exports.activate = activate;
 
 // this method is called when your extension is deactivated
-function deactivate() {
-}
+function deactivate() {}
 
 exports.deactivate = deactivate;
 
@@ -150,7 +150,7 @@ function doWebdavAction(webdavAction) {
             return;
         }
 
-        const webdav =   require("webdav-fs")(config.remoteEndpoint.url, credentials._username, credentials._password);
+        const webdav = WebdavFs(config.remoteEndpoint.url, credentials._username, credentials._password);
         webdavAction(webdav, workingFile, remoteFile).then(() => {
             // store the password only if there is no WebDAV error and
             // the credentials contains at least a user name
