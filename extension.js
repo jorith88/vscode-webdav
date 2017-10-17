@@ -181,11 +181,6 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
         let configOnCurrentSearchPath = null;
 
         while (!endpointConfig) {
-            if (currentSearchPath === "") {
-                vscode.window.showErrorMessage('Cannot find a remote endpoint configuration for the current working directory ' + relativeWorkingDir + ' in webdav.json...');
-                return null;
-            }
-
             configOnCurrentSearchPath = allEndpointsConfig[currentSearchPath];
 
             if (!configOnCurrentSearchPath) {
@@ -197,6 +192,16 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
                 endpointConfig = configOnCurrentSearchPath;
             } else {
                 currentSearchPath = currentSearchPath.slice(0, currentSearchPath.lastIndexOf("/"));
+
+                if (currentSearchPath === "") {
+                    // issue #1 - check root mapping
+                    endpointConfig = allEndpointsConfig["/"]
+
+                    if (!endpointConfig) {
+                        vscode.window.showErrorMessage('Cannot find a remote endpoint configuration for the current working directory ' + relativeWorkingDir + ' in webdav.json...');
+                        return null;
+                    }
+                }
             }
         }
 
