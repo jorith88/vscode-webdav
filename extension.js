@@ -1,11 +1,10 @@
-const vscode            = require('vscode');
-const fs                = require("fs");
-const findConfig        = require('find-config');
-const path              = require('path');
-const tmp               = require('tmp');
-const CredentialStore   = require('./credentialstore/credentialstore.js');
-const nodeUrl           = require('url');
-const WebdavFs          = require("webdav-fs")
+const vscode = require('vscode');
+const fs = require("fs");
+const findConfig = require('find-config');
+const path = require('path');
+const tmp = require('tmp');
+const CredentialStore = require('./credentialstore/credentialstore.js');
+const nodeUrl = require('url');
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
