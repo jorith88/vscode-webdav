@@ -11,3 +11,6 @@
 
 ## 0.0.4
 - Prevent throwing an error if no active text editor can be found
+
+## 0.0.5
+- Add support for mapping the project root
