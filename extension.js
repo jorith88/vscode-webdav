@@ -72,7 +72,7 @@ function compare() {
         return new Promise(function(resolve, reject) {
             // Write the remote file to a local temporary file
             const extension = workingFile.slice(workingFile.lastIndexOf('.'));
-            var tmpFile = tmp.fileSync({ postfix: extension });
+            const tmpFile = tmp.fileSync({ postfix: extension });
             webdav.readFile(remoteFile, "utf8", function(error, data) {
 
                 if (error != null) {
@@ -170,9 +170,9 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
     const configFile = findConfig('webdav.json', {cwd: absoluteWorkingDir});
 
     if (configFile != null) {
-        var allEndpointsConfig = JSON.parse(fs.readFileSync(configFile));
+        const allEndpointsConfig = JSON.parse(fs.readFileSync(configFile));
 
-        var endpointConfigDirectory = configFile.slice(0, configFile.lastIndexOf(path.sep));
+        const endpointConfigDirectory = configFile.slice(0, configFile.lastIndexOf(path.sep));
 
         const relativeWorkingDir = absoluteWorkingDir.slice(endpointConfigDirectory.length).replace(/\\/g, '/'); // On Windows replace \ with /
 
@@ -181,11 +181,6 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
         let configOnCurrentSearchPath = null;
 
         while (!endpointConfig) {
-            if (currentSearchPath === "") {
-                vscode.window.showErrorMessage('Cannot find a remote endpoint configuration for the current working directory ' + relativeWorkingDir + ' in webdav.json...');
-                return null;
-            }
-
             configOnCurrentSearchPath = allEndpointsConfig[currentSearchPath];
 
             if (!configOnCurrentSearchPath) {
@@ -197,6 +192,16 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
                 endpointConfig = configOnCurrentSearchPath;
             } else {
                 currentSearchPath = currentSearchPath.slice(0, currentSearchPath.lastIndexOf("/"));
+
+                if (currentSearchPath === "") {
+                    // issue #1 - check root mapping
+                    endpointConfig = allEndpointsConfig["/"]
+
+                    if (!endpointConfig) {
+                        vscode.window.showErrorMessage('Cannot find a remote endpoint configuration for the current working directory ' + relativeWorkingDir + ' in webdav.json...');
+                        return null;
+                    }
+                }
             }
         }
 
