@@ -5,7 +5,7 @@ const path              = require('path');
 const tmp               = require('tmp');
 const CredentialStore   = require('./credentialstore/credentialstore.js');
 const nodeUrl           = require('url');
-const WebdavFs          = require("webdav-fs")
+const webdavFs          = require("webdav-fs")
 
 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
@@ -150,7 +150,7 @@ function doWebdavAction(webdavAction) {
             return;
         }
 
-        const webdav = WebdavFs(config.remoteEndpoint.url, credentials._username, credentials._password);
+        const webdav = webdavFs(config.remoteEndpoint.url, credentials._username, credentials._password);
         webdavAction(webdav, workingFile, remoteFile).then(() => {
             // store the password only if there is no WebDAV error and
             // the credentials contains at least a user name
