@@ -51,7 +51,7 @@
         "find-config": "^1.0.0",
         "tmp": "0.0.33",
         "typescript": "^2.5.2",
-        "vscode": "^1.1.5",
+        "vscode": "^1.1.18",
         "webdav-fs": "^1.5.0"
     }
 }
