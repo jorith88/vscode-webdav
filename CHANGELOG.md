@@ -14,3 +14,6 @@
 
 ## 0.0.5
 - Add support for mapping the project root
+
+## 0.0.6
+- Updated dependencies
