@@ -40,7 +40,7 @@
     },
     "devDependencies": {
         "@types/mocha": "^5.2.5",
-        "@types/node": "^10.12.1",
+        "@types/node": "^10.12.8",
         "eslint": "^5.3.0",
         "mocha": "^5.2.0"
     },
