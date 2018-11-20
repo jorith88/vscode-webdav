@@ -52,6 +52,6 @@
         "typescript": "^3.1.4",
         "underscore": "^1.9.1",
         "vscode": "^1.1.21",
-        "webdav-fs": "^1.11.0"
+        "webdav-fs": "^1.12.0"
     }
 }
