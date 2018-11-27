@@ -17,3 +17,6 @@
 
 ## 0.0.6
 - Updated dependencies
+
+## 0.0.7
+- Updated dependencies (including fix for event-stream vulnerability https://github.com/dominictarr/event-stream/issues/116)
