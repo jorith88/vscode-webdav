@@ -51,7 +51,7 @@
         "tmp": "0.0.33",
         "typescript": "^3.1.6",
         "underscore": "^1.9.1",
-        "vscode": "^1.1.22",
+        "vscode": "^1.1.32",
         "webdav-fs": "^1.12.0"
     }
 }
