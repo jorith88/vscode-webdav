@@ -150,7 +150,8 @@ function doWebdavAction(webdavAction) {
             return;
         }
 
-        const webdav = webdavFs(config.remoteEndpoint.url, credentials._username, credentials._password);
+        const webdav = webdavFs(config.remoteEndpoint.url, { username: credentials._username, password: credentials._password });
+
         webdavAction(webdav, workingFile, remoteFile).then(() => {
             // store the password only if there is no WebDAV error and
             // the credentials contains at least a user name
