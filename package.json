@@ -24,7 +24,21 @@
                 "command": "extension.webdavCompare",
                 "title": "WebDAV: Compare"
             }
-        ]
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorTextFocus",
+                    "command": "extension.webdavCompare",
+                    "group": "webdav"
+                },
+                {
+                    "when": "editorTextFocus",
+                    "command": "extension.webdavUpload",
+                    "group": "webdav"
+                }
+            ]
+        }
     },
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install",
