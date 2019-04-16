@@ -31,11 +31,11 @@ function deactivate() {}
 exports.deactivate = deactivate;
 
 function upload() {
-    doWebdavAction(function(webdav, workingFile, remoteFile) {
-        return new Promise(function(resolve, reject) {
+    doWebdavAction((webdav, workingFile, remoteFile) => {
+        return new Promise((resolve, reject) => {
             const editor = vscode.window.activeTextEditor;
 
-            webdav.writeFile(remoteFile, editor.document.getText() , function(err) {
+            webdav.writeFile(remoteFile, editor.document.getText() , err => {
                 if (err == null) {
                     const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
                     vscode.window.showInformationMessage(`Uploaded: ${fileName}`)
@@ -52,19 +52,19 @@ function upload() {
 }
 
 function compare() {
-    doWebdavAction(function(webdav, workingFile, remoteFile) {
-        return new Promise(function(resolve, reject) {
+    doWebdavAction((webdav, workingFile, remoteFile) => {
+        return new Promise((resolve, reject) => {
             // Write the remote file to a local temporary file
             const extension = workingFile.slice(workingFile.lastIndexOf('.'));
             const tmpFile = tmp.fileSync({ postfix: extension });
-            webdav.readFile(remoteFile, "utf8", function(error, data) {
+            webdav.readFile(remoteFile, "utf8", (error, data) => {
 
                 if (error != null) {
                     console.log(error);
                     reject(error);
                 }
 
-                fs.writeFileSync(tmpFile.name, data, function(err) {
+                fs.writeFileSync(tmpFile.name, data, err => {
                     if(err) {
                         console.log(err);
                         reject(error);
@@ -200,7 +200,7 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
 }
 
 function getWebdavCredentials(key) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         credStore.GetCredential(key).then(credentials => {
             if (credentials !== undefined) {
                 resolve(credentials);
@@ -214,7 +214,7 @@ function getWebdavCredentials(key) {
 }
 
 function askForCredentials(key) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         vscode.window.showInputBox({prompt: 'Username for ' + key + ' ?'}).then(username => {
             if (!username) {
                 resolve(EMPTY_CREDENTIALS);
