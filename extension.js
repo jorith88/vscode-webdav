@@ -7,7 +7,6 @@ const CredentialStore   = require('./credentialstore/credentialstore.js');
 const nodeUrl           = require('url');
 const webdavFs          = require("webdav-fs")
 
-const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
 
 const EMPTY_CREDENTIALS = {
@@ -20,14 +19,8 @@ function activate(context) {
     const uploadCommand = vscode.commands.registerCommand('extension.webdavUpload', upload);
     const compareCommand = vscode.commands.registerCommand('extension.webdavCompare', compare);
 
-    statusBar.command = 'extension.webdavUpload';
-    statusBar.text = '$(cloud-upload) Upload to WebDAV';
-
-    context.subscriptions.push(statusBar);
     context.subscriptions.push(uploadCommand);
     context.subscriptions.push(compareCommand);
-
-    statusBar.show();
 }
 
 exports.activate = activate;
@@ -43,25 +36,16 @@ function upload() {
             const editor = vscode.window.activeTextEditor;
 
             webdav.writeFile(remoteFile, editor.document.getText() , function(err) {
-                if (err != null) {
-                    console.error(err);
-                    vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
-                    reject(err);
-                } else {
+                if (err == null) {
                     const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
-
-                    statusBar.text    = "$(cloud-upload) Uploaded " + fileName + "...";
-                    statusBar.command = null;
-                    statusBar.color   = '#4cff4c';
-
-                    setTimeout(function() {
-                        statusBar.text    = '$(cloud-upload) Upload to WebDAV';
-                        statusBar.command = 'extension.webdavUpload';
-                        statusBar.color   = '#fff';
-                    }, 2000)
-
+                    vscode.window.showInformationMessage(`Uploaded: ${fileName}`)
                     resolve(undefined);
+                    return
                 }
+
+                console.error(err);
+                vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
+                reject(err);
             });
         });
     });
