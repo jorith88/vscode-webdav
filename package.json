@@ -66,12 +66,13 @@
         "webpack-cli": "^3.3.0"
     },
     "dependencies": {
+        "event-stream": "3.3.4",
         "find-config": "^1.0.0",
         "path": "^0.12.7",
         "q": "^1.5.1",
+        "readable-stream": "^3.3.0",
         "tmp": "0.1.0",
         "underscore": "^1.9.1",
-        "webdav-fs": "^2.0.0",
-        "event-stream": "3.3.4"
+        "webdav-fs": "^2.0.0"
     }
 }
