@@ -18,11 +18,13 @@
         "commands": [
             {
                 "command": "extension.webdavUpload",
-                "title": "WebDAV: Upload"
+                "title": "Upload to remote WebDAV",
+                "category": "WebDAV"
             },
             {
                 "command": "extension.webdavCompare",
-                "title": "WebDAV: Compare"
+                "title": "Compare with remote WebDAV",
+                "category": "WebDAV"
             }
         ],
         "menus": {
