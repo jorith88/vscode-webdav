@@ -24,3 +24,6 @@
 ## 0.0.8
 - Updated dependencies
 - Replaced status bar button with context menu items
+
+## 0.0.9
+- Bugfix release, fix missing dependency
