@@ -58,7 +58,7 @@
         "**/event-stream": "3.3.4"
     },
     "devDependencies": {
-        "@types/mocha": "^5.2.6",
+        "@types/mocha": "^5.2.7",
         "@types/node": "^11.13.4",
         "eslint": "^5.16.0",
         "ts-loader": "^5.3.3",
