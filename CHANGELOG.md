@@ -16,3 +16,14 @@
 - Add support for mapping the project root
 
 ## 0.0.6
+- Updated dependencies
+
+## 0.0.7
+- Updated dependencies (including fix for event-stream vulnerability https://github.com/dominictarr/event-stream/issues/116)
+
+## 0.0.8
+- Updated dependencies
+- Replaced status bar button with context menu items
+
+## 0.0.9
+- Bugfix release, fix missing dependency

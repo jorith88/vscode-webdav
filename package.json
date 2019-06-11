@@ -2,7 +2,7 @@
     "name": "webdav",
     "displayName": "WebDAV Upload",
     "description": "Uploads local files to a remote host using WebDAV",
-    "version": "0.0.6",
+    "version": "0.0.9",
     "publisher": "jorithvdheuvel",
     "engines": {
         "vscode": "^1.16.0"
@@ -18,13 +18,29 @@
         "commands": [
             {
                 "command": "extension.webdavUpload",
-                "title": "WebDAV: Upload"
+                "title": "Upload to remote WebDAV",
+                "category": "WebDAV"
             },
             {
                 "command": "extension.webdavCompare",
-                "title": "WebDAV: Compare"
+                "title": "Compare with remote WebDAV",
+                "category": "WebDAV"
             }
-        ]
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorTextFocus",
+                    "command": "extension.webdavCompare",
+                    "group": "webdav"
+                },
+                {
+                    "when": "editorTextFocus",
+                    "command": "extension.webdavUpload",
+                    "group": "webdav"
+                }
+            ]
+        }
     },
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -38,20 +54,27 @@
         "type": "git",
         "url": "https://github.com/jorith88/vscode-webdav.git"
     },
+    "resolutions": {
+        "**/event-stream": "3.3.4"
+    },
     "devDependencies": {
-        "@types/mocha": "^2.2.42",
-        "@types/node": "^7.0.0",
-        "eslint": "^4.6.1",
-        "mocha": "^3.5.0"
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^11.13.4",
+        "eslint": "^5.16.0",
+        "ts-loader": "^5.3.3",
+        "typescript": "^3.4.3",
+        "vscode": "^1.1.33",
+        "webpack": "^4.30.0",
+        "webpack-cli": "^3.3.0"
     },
     "dependencies": {
-        "q": "^1.5.0",
-        "underscore": "^1.8.3",
-        "path": "^0.12.7",
+        "event-stream": "3.3.4",
         "find-config": "^1.0.0",
-        "tmp": "0.0.33",
-        "typescript": "^2.5.2",
-        "vscode": "^1.1.5",
-        "webdav-fs": "^1.5.0"
+        "path": "^0.12.7",
+        "q": "^1.5.1",
+        "readable-stream": "^3.3.0",
+        "tmp": "0.1.0",
+        "underscore": "^1.9.1",
+        "webdav-fs": "^2.0.0"
     }
 }

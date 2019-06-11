@@ -1,12 +1,12 @@
-const vscode = require('vscode');
-const fs = require("fs");
-const findConfig = require('find-config');
-const path = require('path');
-const tmp = require('tmp');
-const CredentialStore = require('./credentialstore/credentialstore.js');
-const nodeUrl = require('url');
+const vscode            = require('vscode');
+const fs                = require("fs");
+const findConfig        = require('find-config');
+const path              = require('path');
+const tmp               = require('tmp');
+const CredentialStore   = require('./credentialstore/credentialstore.js');
+const nodeUrl           = require('url');
+const webdavFs          = require("webdav-fs")
 
-const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
 
 const EMPTY_CREDENTIALS = {
@@ -19,14 +19,8 @@ function activate(context) {
     const uploadCommand = vscode.commands.registerCommand('extension.webdavUpload', upload);
     const compareCommand = vscode.commands.registerCommand('extension.webdavCompare', compare);
 
-    statusBar.command = 'extension.webdavUpload';
-    statusBar.text = '$(cloud-upload) Upload to WebDAV';
-
-    context.subscriptions.push(statusBar);
     context.subscriptions.push(uploadCommand);
     context.subscriptions.push(compareCommand);
-
-    statusBar.show();
 }
 
 exports.activate = activate;
@@ -37,49 +31,40 @@ function deactivate() {}
 exports.deactivate = deactivate;
 
 function upload() {
-    doWebdavAction(function(webdav, workingFile, remoteFile) {
-        return new Promise(function(resolve, reject) {
+    doWebdavAction((webdav, workingFile, remoteFile) => {
+        return new Promise((resolve, reject) => {
             const editor = vscode.window.activeTextEditor;
 
-            webdav.writeFile(remoteFile, editor.document.getText() , function(err) {
-                if (err != null) {
-                    console.error(err);
-                    vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
-                    reject(err);
-                } else {
+            webdav.writeFile(remoteFile, editor.document.getText() , err => {
+                if (err == null) {
                     const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
-
-                    statusBar.text    = "$(cloud-upload) Uploaded " + fileName + "...";
-                    statusBar.command = null;
-                    statusBar.color   = '#4cff4c';
-
-                    setTimeout(function() {
-                        statusBar.text    = '$(cloud-upload) Upload to WebDAV';
-                        statusBar.command = 'extension.webdavUpload';
-                        statusBar.color   = '#fff';
-                    }, 2000)
-
+                    vscode.window.showInformationMessage(`Uploaded: ${fileName}`)
                     resolve(undefined);
+                    return
                 }
+
+                console.error(err);
+                vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
+                reject(err);
             });
         });
     });
 }
 
 function compare() {
-    doWebdavAction(function(webdav, workingFile, remoteFile) {
-        return new Promise(function(resolve, reject) {
+    doWebdavAction((webdav, workingFile, remoteFile) => {
+        return new Promise((resolve, reject) => {
             // Write the remote file to a local temporary file
             const extension = workingFile.slice(workingFile.lastIndexOf('.'));
             const tmpFile = tmp.fileSync({ postfix: extension });
-            webdav.readFile(remoteFile, "utf8", function(error, data) {
+            webdav.readFile(remoteFile, "utf8", (error, data) => {
 
                 if (error != null) {
                     console.log(error);
                     reject(error);
                 }
 
-                fs.writeFileSync(tmpFile.name, data, function(err) {
+                fs.writeFileSync(tmpFile.name, data, err => {
                     if(err) {
                         console.log(err);
                         reject(error);
@@ -149,7 +134,8 @@ function doWebdavAction(webdavAction) {
             return;
         }
 
-        const webdav = WebdavFs(config.remoteEndpoint.url, credentials._username, credentials._password);
+        const webdav = webdavFs(config.remoteEndpoint.url, { username: credentials._username, password: credentials._password });
+
         webdavAction(webdav, workingFile, remoteFile).then(() => {
             // store the password only if there is no WebDAV error and
             // the credentials contains at least a user name
@@ -214,7 +200,7 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
 }
 
 function getWebdavCredentials(key) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         credStore.GetCredential(key).then(credentials => {
             if (credentials !== undefined) {
                 resolve(credentials);
@@ -228,7 +214,7 @@ function getWebdavCredentials(key) {
 }
 
 function askForCredentials(key) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         vscode.window.showInputBox({prompt: 'Username for ' + key + ' ?'}).then(username => {
             if (!username) {
                 resolve(EMPTY_CREDENTIALS);
