@@ -59,7 +59,7 @@
     },
     "devDependencies": {
         "@types/mocha": "^5.2.6",
-        "@types/node": "^11.13.4",
+        "@types/node": "^12.7.5",
         "eslint": "^5.16.0",
         "ts-loader": "^5.3.3",
         "typescript": "^3.4.3",
