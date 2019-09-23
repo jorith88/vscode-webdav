@@ -61,7 +61,7 @@
         "@types/mocha": "^5.2.6",
         "@types/node": "^11.13.4",
         "eslint": "^5.16.0",
-        "ts-loader": "^5.3.3",
+        "ts-loader": "^6.1.2",
         "typescript": "^3.4.3",
         "vscode": "^1.1.33",
         "webpack": "^4.30.0",
