@@ -27,3 +27,6 @@
 
 ## 0.0.9
 - Bugfix release, fix missing dependency
+
+## 0.0.10
+- Update dependencies
