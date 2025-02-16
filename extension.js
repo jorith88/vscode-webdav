@@ -30,23 +30,62 @@ function deactivate() {}
 
 exports.deactivate = deactivate;
 
+
+// recursively create remote directory for `webdav` object
+// using `directories` array, starting from `index` offset
+function mkdir(webdav, directories, index) {
+    return new Promise((resolve, reject) => {
+        if (index > directories.length) {
+            resolve();
+            return; // all directories created
+        }
+        webdav.mkdir(directories.slice(0, index).join('/'), err => {
+            if (err == null) {
+                mkdir(webdav, directories, ++index).then(resolve).catch(reject);
+            } else if (err.message.includes(405)) { // directory exists, go next @TODO get code
+                mkdir(webdav, directories, ++index).then(resolve).catch(reject);
+            } else {
+                console.error(err);
+                vscode.window.showErrorMessage(err.message);
+                reject(err);
+            }
+        });
+    });
+}
+
 function upload() {
     doWebdavAction((webdav, workingFile, remoteFile) => {
         return new Promise((resolve, reject) => {
-            const editor = vscode.window.activeTextEditor;
-
-            webdav.writeFile(remoteFile, editor.document.getText() , err => {
-                if (err == null) {
-                    const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
-                    vscode.window.showInformationMessage(`Uploaded: ${fileName}`)
-                    resolve(undefined);
-                    return
+            mkdir(
+                webdav,
+                remoteFile
+                    .slice(0, remoteFile.lastIndexOf('/'))
+                    .split('/')
+                    .filter(dir => dir.length > 0),
+                1
+            ).then(
+                () => {
+                    webdav.writeFile(
+                        remoteFile,
+                        vscode.window.activeTextEditor.document.getText(),
+                        err => {
+                            if (err == null) {
+                                const fileName = remoteFile.slice(remoteFile.lastIndexOf('/') + 1);
+                                vscode.window.showInformationMessage(`Upload completed: ${fileName}`)
+                                resolve(undefined);
+                                return
+                            }
+                            console.error(err);
+                            vscode.window.showErrorMessage(err.message);
+                            reject(err);
+                        }
+                    );
+                },
+                err => {
+                    console.error(err);
+                    vscode.window.showErrorMessage(err.message);
                 }
-
-                console.error(err);
-                vscode.window.showErrorMessage('Failed to upload file to remote host: ' + err.message);
-                reject(err);
-            });
+            );
         });
     });
 }
