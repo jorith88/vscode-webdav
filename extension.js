@@ -131,6 +131,7 @@ function doWebdavAction(webdavAction) {
     const config = getEndpointConfigForCurrentPath(workingDir);
 
     if (!config) {
+        vscode.window.showErrorMessage('Endpoint config file for WebDAV (webdav.json) not found...');
         return;
     }
 
@@ -212,8 +213,6 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
             localRootPath: currentSearchPath,
             remoteEndpoint: endpointConfig
         }
-    } else {
-        vscode.window.showErrorMessage('Endpoint config file for WebDAV (webdav.json) not found...');
     }
 }
 
