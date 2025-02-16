@@ -21,6 +21,8 @@ function activate(context) {
 
     context.subscriptions.push(uploadCommand);
     context.subscriptions.push(compareCommand);
+
+    sync();
 }
 
 exports.activate = activate;
@@ -97,6 +99,22 @@ function compare() {
             });
         });
     });
+}
+
+function sync() {
+
+    // on file save
+    vscode.workspace.onDidSaveTextDocument(() => {
+        const workingFile = vscode.window.activeTextEditor.document.uri.fsPath;
+        const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
+        const config = getEndpointConfigForCurrentPath(workingDir);
+
+        if (config.remoteEndpoint.uploadOnSave) {
+            upload();
+        }
+    });
+
+    // @TODO on file delete
 }
 
 function doWebdavAction(webdavAction) {
