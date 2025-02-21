@@ -111,11 +111,16 @@ function sync() {
 
         if (config.remoteEndpoint.uploadOnSave.enabled) {
             if (config.remoteEndpoint.uploadOnSave.pattern) {
-                let pattern = new RegExp(config.remoteEndpoint.uploadOnSave.pattern);
-                if (pattern.test(workingFile)) {
-                    upload();
-                } else {
-                    vscode.window.showWarningMessage('Auto-upload skipped by file pattern rules!');
+                let is_match = false;
+                for (let regexp of config.remoteEndpoint.uploadOnSave.pattern) {
+                    if (RegExp(regexp).test(workingFile)) {
+                        is_match = true;
+                        upload();
+                        break;
+                    }
+                }
+                if (!is_match) {
+                    vscode.window.showWarningMessage('Auto-upload skipped by file pattern rules');
                 }
             } else {
                 // ignore `webdav.json` to auto-upload on save by default
