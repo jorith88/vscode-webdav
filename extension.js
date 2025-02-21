@@ -109,8 +109,20 @@ function sync() {
         const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
         const config = getEndpointConfigForCurrentPath(workingDir);
 
-        if (config.remoteEndpoint.uploadOnSave) {
-            upload();
+        if (config.remoteEndpoint.uploadOnSave.enabled) {
+            if (config.remoteEndpoint.uploadOnSave.pattern) {
+                let pattern = new RegExp(config.remoteEndpoint.uploadOnSave.pattern);
+                if (pattern.test(workingFile)) {
+                    upload();
+                } else {
+                    vscode.window.showWarningMessage('Auto-upload skipped by file pattern rules!');
+                }
+            } else {
+                // ignore `webdav.json` to auto-upload on save by default
+                if (!workingFile.endsWith("webdav.json")) {
+                    upload();
+                }
+            }
         }
     });
 
