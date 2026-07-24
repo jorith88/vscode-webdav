@@ -4,6 +4,7 @@
     "description": "Uploads local files to a remote host using WebDAV",
     "version": "0.0.14",
     "publisher": "jorithvdheuvel",
+    "license": "MIT",
     "engines": {
         "vscode": "^1.85.0"
     },
