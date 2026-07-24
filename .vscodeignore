@@ -1,7 +1,10 @@
 .vscode/**
 .vscode-test/**
+.claude/**
 test/**
 .gitignore
+.mocharc.json
 jsconfig.json
 vsc-extension-quickstart.md
 .eslintrc.json
+CLAUDE.md
