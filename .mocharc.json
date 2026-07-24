@@ -1,0 +1,5 @@
+{
+    "require": "test/helpers/mocha-setup.js",
+    "spec": "test/**/*.spec.js",
+    "timeout": 15000
+}

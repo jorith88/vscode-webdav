@@ -5,7 +5,7 @@ const path              = require('path');
 const tmp               = require('tmp');
 const CredentialStore   = require('./credentialstore/credentialstore.js');
 const nodeUrl           = require('url');
-const webdavFs          = require("webdav-fs")
+const { createAdapter: webdavFs } = require("webdav-fs")
 
 const credStore = new CredentialStore.CredentialStore("vscode-webdav:", ".webdav", "webdav-secrets.json");
 
@@ -240,3 +240,8 @@ function askForCredentials(key) {
 function storeCredentials(key, username, password) {
     credStore.SetCredential(key, username, password)
 }
+
+// Exported for unit/integration tests only; not part of the documented extension API.
+exports.getEndpointConfigForCurrentPath = getEndpointConfigForCurrentPath;
+exports.upload = upload;
+exports.compare = compare;

@@ -39,3 +39,8 @@
 
 ## 0.0.13
 - Update dependencies
+
+## 0.0.14
+- Update dependencies, including a major upgrade of webdav-fs (3.x to 4.x)
+- Added a test suite (`npm test`)
+- Raised the minimum supported VS Code version to 1.85.0 and switched to lazy (`onCommand`) activation

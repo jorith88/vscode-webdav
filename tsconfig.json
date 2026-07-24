@@ -13,13 +13,7 @@
         "noImplicitReturns": true,
         "strictNullChecks": true,
         "noUnusedParameters": true,
-        "baseUrl": "./",
-        "paths": {
-            "*": [
-                "node_modules/@types/*",
-                "*"
-            ]
-        },
+        "types": ["node"],
         "skipLibCheck": true // https://github.com/Azure/ms-rest-js/issues/367
     },
     "exclude": [
