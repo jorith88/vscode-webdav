@@ -21,6 +21,8 @@ function activate(context) {
 
     context.subscriptions.push(uploadCommand);
     context.subscriptions.push(compareCommand);
+
+    sync();
 }
 
 exports.activate = activate;
@@ -99,6 +101,39 @@ function compare() {
     });
 }
 
+function sync() {
+
+    // on file save
+    vscode.workspace.onDidSaveTextDocument(() => {
+        const workingFile = vscode.window.activeTextEditor.document.uri.fsPath;
+        const workingDir = workingFile.slice(0, workingFile.lastIndexOf(path.sep));
+        const config = getEndpointConfigForCurrentPath(workingDir);
+
+        if (config.remoteEndpoint.uploadOnSave.enabled) {
+            if (config.remoteEndpoint.uploadOnSave.pattern) {
+                let is_match = false;
+                for (let regexp of config.remoteEndpoint.uploadOnSave.pattern) {
+                    if (RegExp(regexp).test(workingFile)) {
+                        is_match = true;
+                        upload();
+                        break;
+                    }
+                }
+                if (!is_match) {
+                    vscode.window.showWarningMessage('Auto-upload skipped by file pattern rules');
+                }
+            } else {
+                // ignore `webdav.json` to auto-upload on save by default
+                if (!workingFile.endsWith("webdav.json")) {
+                    upload();
+                }
+            }
+        }
+    });
+
+    // @TODO on file delete
+}
+
 function doWebdavAction(webdavAction) {
 
     if (!vscode.window.activeTextEditor) {
@@ -113,6 +148,7 @@ function doWebdavAction(webdavAction) {
     const config = getEndpointConfigForCurrentPath(workingDir);
 
     if (!config) {
+        vscode.window.showErrorMessage('Endpoint config file for WebDAV (webdav.json) not found...');
         return;
     }
 
@@ -194,8 +230,6 @@ function getEndpointConfigForCurrentPath(absoluteWorkingDir) {
             localRootPath: currentSearchPath,
             remoteEndpoint: endpointConfig
         }
-    } else {
-        vscode.window.showErrorMessage('Endpoint config file for WebDAV (webdav.json) not found...');
     }
 }
 
